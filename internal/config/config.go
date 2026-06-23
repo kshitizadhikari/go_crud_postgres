@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"log"
 	"os"
 
@@ -38,10 +39,23 @@ func LoadConfig() *Config {
 }
 
 // GetDBURL returns the PostgreSQL connection string
-func (c *Config) GetDBURL() string {
-	return "postgres://" + c.DBUser + ":" + c.DBPassword + "@" +
-		c.DBHost + ":" + c.DBPort + "/" + c.DBName +
-		"?sslmode=" + c.DBSSLMode
+// func (c *Config) GetDBURL() string {
+// 	return "postgres://" + c.DBUser + ":" + c.DBPassword + "@" +
+// 		c.DBHost + ":" + c.DBPort + "/" + c.DBName +
+// 		"?sslmode=" + c.DBSSLMode
+// }
+
+// GetDSN returns DSN format for GORM
+func (c *Config) GetDSN() string {
+	return fmt.Sprintf(
+		"host=%s user=%s password=%s dbname=%s port=%s sslmode=%s TimeZone=Asia/Kathmandu",
+		c.DBHost,
+		c.DBUser,
+		c.DBPassword,
+		c.DBName,
+		c.DBPort,
+		c.DBSSLMode,
+	)
 }
 
 // Helper function to get env variable with default value
