@@ -8,6 +8,7 @@ import (
 	"go_crud_postgres/internal/models"
 
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
 
 type UserService struct {
@@ -97,4 +98,16 @@ func (s *UserService) UpdateUser(ctx context.Context, id uint, req UpdateUserReq
 	}
 
 	return user, nil
+}
+
+func (s *UserService) DeleteUser(ctx context.Context, id uint) error {
+	err := s.repo.Delete(ctx, id)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return errors.New("user not found")
+		}
+		return fmt.Errorf("failed to delete user: %w", err)
+	}
+
+	return nil
 }

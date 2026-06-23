@@ -17,6 +17,15 @@ func NewUserRepository() *UserRepository {
 	return &UserRepository{db: database.GetDB()}
 }
 
+func (r *UserRepository) Exists(email string) (bool, error) {
+	var count int64
+	result := r.db.Model(&models.User{}).Where("email = ?", email).Count(&count)
+	if result.Error != nil {
+		return false, result.Error
+	}
+	return count > 0, nil
+}
+
 func (r *UserRepository) Create(ctx context.Context, user *models.User) error {
 	result := r.db.WithContext(ctx).Create(user)
 	return result.Error
@@ -43,18 +52,21 @@ func (r *UserRepository) GetById(ctx context.Context, id uint) (*models.User, er
 }
 
 func (r *UserRepository) Update(ctx context.Context, user *models.User) error {
-	result := r.db.Save(user)
+	result := r.db.WithContext(ctx).Save(user)
 	if result.Error != nil {
 		return result.Error
 	}
 	return nil
 }
 
-func (r *UserRepository) Exists(email string) (bool, error) {
-	var count int64
-	result := r.db.Model(&models.User{}).Where("email = ?", email).Count(&count)
+func (r *UserRepository) Delete(ctx context.Context, id uint) error {
+	result := r.db.WithContext(ctx).Delete(&models.User{}, id)
 	if result.Error != nil {
-		return false, result.Error
+		return result.Error
 	}
-	return count > 0, nil
+	if result.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+
+	return nil
 }
