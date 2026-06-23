@@ -37,7 +37,17 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 
 }
 
-// func (h *UserHandler) GetAll() {
-// 	users := h.service.GetAll()
+func (h *UserHandler) GetAll(c *gin.Context) {
+	users, err := h.service.GetAll(c.Request.Context())
 
-// }
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "users retrieved successfully",
+		"data":    users,
+	})
+
+}

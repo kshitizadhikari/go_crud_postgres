@@ -22,6 +22,12 @@ func (r *UserRepository) Create(ctx context.Context, user *models.User) error {
 	return result.Error
 }
 
-// func (r *UserRepository) GetAll() {
+func (r *UserRepository) GetAll(ctx context.Context) ([]models.User, error) {
+	var users []models.User
+	result := r.db.WithContext(ctx).Order("id").Find(&users)
+	if result.Error != nil {
+		return nil, result.Error
+	}
 
-// }
+	return users, nil
+}

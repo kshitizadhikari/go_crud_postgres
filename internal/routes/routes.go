@@ -12,7 +12,7 @@ func RegisterRoutes(router *gin.Engine, userHandler *user.UserHandler) {
 
 	users := v1.Group("/users")
 	{
-		// users.GET("", userHandler.GetUsers)
+		users.GET("", userHandler.GetAll)
 		// users.GET("/:id", userHandler.GetUserById)
 		users.POST("", userHandler.CreateUser)
 		// users.PUT("/:id", userHandler.UpdateUser)

@@ -43,6 +43,11 @@ func (s *UserService) CreateUser(ctx context.Context, req CreateUserRequest) (*m
 	return user, nil
 }
 
-// func (s *UserService) GetAll() *[]User {
+func (s *UserService) GetAll(ctx context.Context) ([]models.User, error) {
+	users, err := s.repo.GetAll(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get users: %w", err)
+	}
 
-// }
+	return users, nil
+}
