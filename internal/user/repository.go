@@ -31,3 +31,30 @@ func (r *UserRepository) GetAll(ctx context.Context) ([]models.User, error) {
 
 	return users, nil
 }
+
+func (r *UserRepository) GetById(ctx context.Context, id uint) (*models.User, error) {
+	var user models.User
+	result := r.db.WithContext(ctx).First(&user, id)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	return &user, nil
+}
+
+func (r *UserRepository) Update(ctx context.Context, user *models.User) error {
+	result := r.db.Save(user)
+	if result.Error != nil {
+		return result.Error
+	}
+	return nil
+}
+
+func (r *UserRepository) Exists(email string) (bool, error) {
+	var count int64
+	result := r.db.Model(&models.User{}).Where("email = ?", email).Count(&count)
+	if result.Error != nil {
+		return false, result.Error
+	}
+	return count > 0, nil
+}

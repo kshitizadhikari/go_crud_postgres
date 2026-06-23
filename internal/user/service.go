@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"go_crud_postgres/internal/models"
@@ -21,6 +22,11 @@ type CreateUserRequest struct {
 	Name     string `json:"name" binding:"required"`
 	Email    string `json:"email" binding:"required,email"`
 	Password string `json:"password" binding:"required,min=6"`
+}
+
+type UpdateUserRequest struct {
+	Name  string `json:"name" binding:"required"`
+	Email string `json:"email" binding:"required,email"`
 }
 
 func (s *UserService) CreateUser(ctx context.Context, req CreateUserRequest) (*models.User, error) {
@@ -50,4 +56,45 @@ func (s *UserService) GetAll(ctx context.Context) ([]models.User, error) {
 	}
 
 	return users, nil
+}
+
+func (s *UserService) GetById(ctx context.Context, id uint) (*models.User, error) {
+	user, err := s.repo.GetById(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to retrieve user: %w", err)
+	}
+
+	if user == nil {
+		return nil, fmt.Errorf("user not found")
+	}
+
+	return user, nil
+}
+
+func (s *UserService) UpdateUser(ctx context.Context, id uint, req UpdateUserRequest) (*models.User, error) {
+	user, err := s.GetById(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	if req.Email != user.Email {
+		exists, err := s.repo.Exists(req.Email)
+		if err != nil {
+			return nil, fmt.Errorf("failed to check email: %w", err)
+		}
+		if exists {
+			return nil, errors.New("email already taken by another user")
+		}
+		user.Email = req.Email
+	}
+
+	user.Name = req.Name
+
+	err = s.repo.Update(ctx, user)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to update user: %w", err.Error())
+	}
+
+	return user, nil
 }
