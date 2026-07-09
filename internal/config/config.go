@@ -17,6 +17,15 @@ type Config struct {
 	DBName     string
 	DBSSLMode  string
 	AppPort    string
+	Minio      MinioConfig
+}
+
+type MinioConfig struct {
+	Endpoint  string
+	AccessKey string
+	SecretKey string
+	UseSSL    bool
+	Bucket    string
 }
 
 // LoadConfig loads configuration from .env file
@@ -35,6 +44,13 @@ func LoadConfig() *Config {
 		DBName:     getEnv("DB_NAME", "go_crud"),
 		DBSSLMode:  getEnv("DB_SSLMODE", "disable"),
 		AppPort:    getEnv("APP_PORT", "8080"),
+		Minio: MinioConfig{
+			Endpoint:  getEnv("MINIO_ENDPOINT", "localhost:9000"),
+			AccessKey: getEnv("MINIO_ACCESS_KEY", "admin"),
+			SecretKey: getEnv("MINIO_SECRET_KEY", "admin123"),
+			UseSSL:    false,
+			Bucket:    getEnv("MINIO_BUCKET", "uploads"),
+		},
 	}
 }
 

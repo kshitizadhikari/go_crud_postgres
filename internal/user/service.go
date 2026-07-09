@@ -4,25 +4,29 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"mime/multipart"
+	"time"
 
 	"go_crud_postgres/internal/models"
+	"go_crud_postgres/pkg/storage"
 
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
 type UserService struct {
-	repo *UserRepository
+	repo    *UserRepository
+	storage *storage.MinIO
 }
 
-func NewUserService(repo *UserRepository) *UserService {
-	return &UserService{repo: repo}
+func NewUserService(repo *UserRepository, storage *storage.MinIO) *UserService {
+	return &UserService{repo: repo, storage: storage}
 }
 
 type CreateUserRequest struct {
-	Name     string `json:"name" binding:"required"`
-	Email    string `json:"email" binding:"required,email"`
-	Password string `json:"password" binding:"required,min=6"`
+	Name     string `form:"name" binding:"required"`
+	Email    string `form:"email" binding:"required,email"`
+	Password string `form:"password" binding:"required,min=6"`
 }
 
 type UpdateUserRequest struct {
@@ -30,20 +34,41 @@ type UpdateUserRequest struct {
 	Email string `json:"email" binding:"required,email"`
 }
 
-func (s *UserService) CreateUser(ctx context.Context, req CreateUserRequest) (*models.User, error) {
+func (s *UserService) CreateUser(ctx context.Context, req CreateUserRequest, fileHeader *multipart.FileHeader) (*models.User, error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return nil, fmt.Errorf("failed to hash password: %w", err)
 	}
 
+	file, err := fileHeader.Open()
+	if err != nil {
+		return nil, fmt.Errorf("failed to open uploaded file: %w", err)
+	}
+
+	defer file.Close()
+
+	objectKey := fmt.Sprintf("avatars/%d_%s", time.Now().UnixNano(), fileHeader.Filename)
+	err = s.storage.Upload(
+		ctx,
+		objectKey,
+		file,
+		fileHeader.Size,
+		fileHeader.Header.Get("Content-Type"),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to upload avatar: %w", err)
+	}
+
 	// Create user
 	user := &models.User{
-		Name:     req.Name,
-		Email:    req.Email,
-		Password: string(hashedPassword),
+		Name:      req.Name,
+		Email:     req.Email,
+		Password:  string(hashedPassword),
+		AvatarKey: objectKey,
 	}
 
 	if err := s.repo.Create(ctx, user); err != nil {
+		_ = s.storage.Delete(ctx, objectKey)
 		return nil, fmt.Errorf("failed to create user: %w", err)
 	}
 
@@ -92,7 +117,6 @@ func (s *UserService) UpdateUser(ctx context.Context, id uint, req UpdateUserReq
 	user.Name = req.Name
 
 	err = s.repo.Update(ctx, user)
-
 	if err != nil {
 		return nil, fmt.Errorf("failed to update user: %w", err.Error())
 	}

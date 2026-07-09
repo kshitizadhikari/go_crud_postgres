@@ -7,6 +7,7 @@ type User struct {
 	UserName  string    `json:"user_name"`
 	Name      string    `gorm:"not null" json:"name"`
 	Email     string    `gorm:"unique;not null" json:"email"`
+	AvatarKey string    `gorm:"type:text" json:"avatar_key"`
 	Password  string    `json:"-"` // "-" means exclude from JSON
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
