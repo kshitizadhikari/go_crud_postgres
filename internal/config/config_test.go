@@ -7,16 +7,18 @@ import (
 )
 
 func TestLoadConfig_Defaults(t *testing.T) {
-	keys := []string{"DB_HOST", "DB_PORT", "DB_USER", "DB_PASSWORD", "DB_NAME", "DB_SSLMODE", "APP_PORT",
-		"MINIO_ENDPOINT", "MINIO_ACCESS_KEY", "MINIO_SECRET_KEY", "MINIO_BUCKET"}
+	keys := []string{
+		"DB_HOST", "DB_PORT", "DB_USER", "DB_PASSWORD", "DB_NAME", "DB_SSLMODE", "APP_PORT",
+		"MINIO_ENDPOINT", "MINIO_ACCESS_KEY", "MINIO_SECRET_KEY", "MINIO_BUCKET",
+	}
 	for _, k := range keys {
 		os.Unsetenv(k)
 	}
 
 	cfg := LoadConfig()
 
-	if cfg.DBHost != "localhost" {
-		t.Errorf("DBHost = %q, want %q", cfg.DBHost, "localhost")
+	if cfg.DBHost != "postgres" {
+		t.Errorf("DBHost = %q, want %q", cfg.DBHost, "postgres")
 	}
 	if cfg.DBPort != "5432" {
 		t.Errorf("DBPort = %q, want %q", cfg.DBPort, "5432")
