@@ -118,7 +118,7 @@ func (s *UserService) UpdateUser(ctx context.Context, id uint, req UpdateUserReq
 
 	err = s.repo.Update(ctx, user)
 	if err != nil {
-		return nil, fmt.Errorf("failed to update user: %w", err.Error())
+		return nil, fmt.Errorf("failed to update user: %w", err)
 	}
 
 	return user, nil

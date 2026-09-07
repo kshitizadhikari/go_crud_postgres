@@ -64,6 +64,7 @@ func (h *UserHandler) GetById(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "invalid request id",
 		})
+		return
 	}
 
 	user, err := h.service.GetById(c.Request.Context(), uint(id))

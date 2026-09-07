@@ -2,9 +2,7 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
-	"net/http"
 
 	"go_crud_postgres/internal/config"
 	"go_crud_postgres/internal/database"
@@ -30,8 +28,6 @@ func main() {
 		UseSSL:    cfg.Minio.UseSSL,
 		Bucket:    cfg.Minio.Bucket,
 	})
-
-	fmt.Println(minioStorage)
 	if err != nil {
 		log.Fatal("Failed to connect to MinIO:", err)
 	}
@@ -41,11 +37,6 @@ func main() {
 	userHandler := user.NewUserHandler(userService)
 
 	router := gin.Default()
-	router.GET("/health", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-			"status": "ok",
-		})
-	})
 	routes.RegisterRoutes(router, userHandler)
 	log.Printf("🚀 Server running on http://localhost:%s", cfg.AppPort)
 	if err := router.Run(":" + cfg.AppPort); err != nil {
