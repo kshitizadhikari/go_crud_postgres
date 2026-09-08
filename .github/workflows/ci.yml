@@ -34,4 +34,15 @@ jobs:
         run: go test ./...
 
       - name: Build
-        run: go build ./...
+        run: go build ./... 
+
+      - name: Build Docker Image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: false
+          tags: go_crud_postgres:ci
+
+
+
